@@ -1,0 +1,19 @@
+{
+  "name": "vunaflow",
+  "version": "0.1.0",
+  "private": true,
+  "description": "VunaFlow — Smart Vuna Assistant: AI-powered agricultural loan assistance platform",
+  "scripts": {
+    "install:all": "cd server && npm install && cd ../client && npm install",
+    "dev:server": "cd server && npm run dev",
+    "dev:client": "cd client && npm run dev",
+    "dev": "concurrently -n server,client -c green,cyan \"npm:dev:server\" \"npm:dev:client\"",
+    "build": "cd client && npm run build",
+    "start": "cd server && npm start",
+    "lint": "cd client && npm run lint",
+    "typecheck": "cd server && npm run typecheck"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.0"
+  }
+}

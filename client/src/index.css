@@ -1,0 +1,40 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  --vuna-green: #15803d;
+  --vuna-green-dark: #166534;
+}
+
+html {
+  font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+/* Accessibility: large text mode */
+html.large-text {
+  font-size: 18.5px;
+}
+
+/* Smooth theming */
+body {
+  margin: 0;
+  background: #f8faf8;
+  color: #0f172a;
+}
+
+.dark body {
+  background: #0b1120;
+  color: #e2e8f0;
+}
+
+/* Simple fade-in for sections */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.fade-up { animation: fadeUp 0.5s ease both; }
+
+/* Hide scrollbar for chat where needed */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
