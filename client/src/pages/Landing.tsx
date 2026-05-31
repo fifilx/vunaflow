@@ -32,10 +32,10 @@ export default function Landing() {
             <h1 className="mt-4 text-4xl font-extrabold leading-tight md:text-5xl">{t("landing.heroTitle")}</h1>
             <p className="mt-4 max-w-lg text-lg text-green-50">{t("landing.heroSubtitle")}</p>
             <div className="mt-8 flex flex-wrap gap-3">
-              <Button className="bg-white text-green-700 hover:bg-green-50" onClick={() => navigate("/signup")}>
+              <Button variant="white" onClick={() => navigate("/signup")}>
                 {t("landing.heroCta")} <ArrowRight size={18} />
               </Button>
-              <Button variant="outline" className="border-white text-white hover:bg-white/10" onClick={() => navigate("/features")}>
+              <Button variant="whiteOutline" onClick={() => navigate("/features")}>
                 {t("landing.heroSecondary")}
               </Button>
             </div>
@@ -104,7 +104,7 @@ export default function Landing() {
         <div className="mx-auto flex max-w-6xl flex-col items-center gap-4 px-4 py-14 text-center">
           <h2 className="text-3xl font-bold">{t("landing.ctaBannerTitle")}</h2>
           <p className="max-w-xl text-green-50">{t("landing.ctaBannerSubtitle")}</p>
-          <Button className="bg-white text-green-700 hover:bg-green-50" onClick={() => navigate("/signup")}>
+          <Button variant="white" onClick={() => navigate("/signup")}>
             {t("landing.heroCta")} <ArrowRight size={18} />
           </Button>
         </div>

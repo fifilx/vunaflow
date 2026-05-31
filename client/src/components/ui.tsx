@@ -13,7 +13,7 @@ export function Button({
   variant = "primary",
   className = "",
   ...props
-}: ButtonHTMLAttributes<HTMLButtonElement> & { variant?: "primary" | "outline" | "ghost" | "danger" }) {
+}: ButtonHTMLAttributes<HTMLButtonElement> & { variant?: "primary" | "outline" | "ghost" | "danger" | "white" | "whiteOutline" }) {
   const base =
     "inline-flex items-center justify-center gap-2 rounded-xl px-5 py-3 font-semibold transition disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-green-300";
   const styles = {
@@ -21,6 +21,8 @@ export function Button({
     outline: "border border-green-600 text-green-700 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/30",
     ghost: "text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700",
     danger: "bg-red-600 hover:bg-red-700 text-white",
+    white: "bg-white text-green-700 hover:bg-green-50 shadow-sm",
+    whiteOutline: "border border-white text-white hover:bg-white/10",
   };
   return (
     <button className={`${base} ${styles[variant]} ${className}`} {...props}>

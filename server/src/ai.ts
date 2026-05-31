@@ -73,12 +73,21 @@ const FALLBACK = {
   sw: "Nipo kukusaidia na mikopo ya kilimo — maombi, hati, ustahiki, viwango vya riba na ufuatiliaji. Tafadhali eleza upya, au chagua mojawapo ya mada hizo?",
 };
 
+function matchKeyword(text: string, keyword: string): boolean {
+  // Multi-word keywords are matched as phrases; single words are matched on
+  // word boundaries so short tokens (e.g. "hi") don't match inside other words
+  // (e.g. the Swahili "nahitaji").
+  if (keyword.includes(" ")) return text.includes(keyword);
+  const re = new RegExp(`(^|[^a-z])${keyword.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}([^a-z]|$)`);
+  return re.test(text);
+}
+
 export function chatbotReply(message: string, lang: Lang): { content: string; intent: string; escalate: boolean } {
   const text = message.toLowerCase();
   let best: { intent: Intent; score: number } | null = null;
   for (const intent of INTENTS) {
     const kws = [...intent.keywords.en, ...intent.keywords.sw];
-    const score = kws.reduce((acc, kw) => (text.includes(kw) ? acc + 1 : acc), 0);
+    const score = kws.reduce((acc, kw) => (matchKeyword(text, kw) ? acc + 1 : acc), 0);
     if (score > 0 && (!best || score > best.score)) best = { intent, score };
   }
   if (!best) return { content: FALLBACK[lang], intent: "fallback", escalate: false };
