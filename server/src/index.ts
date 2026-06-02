@@ -76,7 +76,7 @@ api.post("/auth/signup", (req, res) => {
     { title: "Karibu VunaFlow", body: "Akaunti yako iko tayari. Anza maombi yako ya kwanza ya mkopo wakati wowote." }
   );
   const token = signToken(info.lastInsertRowid as number, true);
-  res.json({ token, user: publicUser(row) });
+  res.status(201).json({ token, user: publicUser(row) });
 });
 
 api.post("/auth/login", (req, res) => {
@@ -190,12 +190,23 @@ api.get("/applications", authRequired, (req: AuthRequest, res) => {
 
 api.post("/applications", authRequired, (req: AuthRequest, res) => {
   const { productId, farmingType, farmSize, monthlyIncome, businessInfo, amount, termMonths, purpose, status = "draft" } = req.body || {};
+  const parsedAmount = +amount;
+  const parsedTerm = +termMonths;
+  const parsedFarmSize = +farmSize;
+  const parsedIncome = +monthlyIncome;
+  if (parsedAmount < 0 || parsedTerm < 0 || parsedFarmSize < 0 || parsedIncome < 0) {
+    return res.status(400).json({ error: "invalid_numeric_fields", message: "Numeric fields must not be negative." });
+  }
+  if (productId != null) {
+    const product = db.prepare("SELECT id FROM loan_products WHERE id = ?").get(productId);
+    if (!product) return res.status(400).json({ error: "invalid_product" });
+  }
   const elig = scoreEligibility({
     farmingType: farmingType || "crop",
-    monthlyIncome: +monthlyIncome || 0,
-    farmSize: +farmSize || 0,
-    amount: +amount || 0,
-    termMonths: +termMonths || 12,
+    monthlyIncome: parsedIncome || 0,
+    farmSize: parsedFarmSize || 0,
+    amount: parsedAmount || 0,
+    termMonths: parsedTerm || 12,
   });
   const info = db
     .prepare(
@@ -203,8 +214,8 @@ api.post("/applications", authRequired, (req: AuthRequest, res) => {
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
     )
     .run(
-      req.user!.id, productId || null, farmingType || null, +farmSize || null, +monthlyIncome || null,
-      businessInfo || null, +amount || null, +termMonths || null, purpose || null,
+      req.user!.id, productId || null, farmingType || null, parsedFarmSize || null, parsedIncome || null,
+      businessInfo || null, parsedAmount || null, parsedTerm || null, purpose || null,
       status === "submitted" ? "submitted" : "draft", elig.score
     );
   const row = db.prepare("SELECT * FROM applications WHERE id = ?").get(info.lastInsertRowid as number);
@@ -213,13 +224,26 @@ api.post("/applications", authRequired, (req: AuthRequest, res) => {
       { title: "Application submitted", body: "We received your loan application and it is now under review." },
       { title: "Maombi yamewasilishwa", body: "Tumepokea maombi yako ya mkopo na sasa yanapitiwa." });
   }
-  res.json(row);
+  res.status(201).json(row);
 });
 
 api.patch("/applications/:id", authRequired, (req: AuthRequest, res) => {
   const id = +req.params.id;
   const existing: any = db.prepare("SELECT * FROM applications WHERE id = ? AND user_id = ?").get(id, req.user!.id);
   if (!existing) return res.status(404).json({ error: "not_found" });
+  if (existing.status !== "draft") {
+    return res.status(403).json({ error: "application_locked", message: "Only draft applications can be edited." });
+  }
+  const CUSTOMER_STATUSES = ["draft", "submitted"];
+  if (req.body.status !== undefined && !CUSTOMER_STATUSES.includes(req.body.status)) {
+    return res.status(403).json({ error: "invalid_status", message: "Customers may only set status to draft or submitted." });
+  }
+  const numericFields = { farm_size: req.body.farmSize, monthly_income: req.body.monthlyIncome, amount: req.body.amount, term_months: req.body.termMonths };
+  for (const [key, val] of Object.entries(numericFields)) {
+    if (val !== undefined && +val < 0) {
+      return res.status(400).json({ error: "invalid_numeric_fields", message: `${key} must not be negative.` });
+    }
+  }
   const fields = ["product_id", "farming_type", "farm_size", "monthly_income", "business_info", "amount", "term_months", "purpose", "status"];
   const map: Record<string, any> = {
     product_id: req.body.productId, farming_type: req.body.farmingType, farm_size: req.body.farmSize,
@@ -263,7 +287,7 @@ api.post("/documents", authRequired, upload.single("file"), (req: AuthRequest, r
       { title: "Document needs review", body: `Your ${docType.replace("_", " ")} needs a clearer copy.` },
       { title: "Hati inahitaji ukaguzi", body: `Hati yako ya ${docType.replace("_", " ")} inahitaji nakala iliyo wazi zaidi.` });
   }
-  res.json(db.prepare("SELECT * FROM documents WHERE id = ?").get(info.lastInsertRowid as number));
+  res.status(201).json(db.prepare("SELECT * FROM documents WHERE id = ?").get(info.lastInsertRowid as number));
 });
 
 // ---------- Chat (auth, persisted) ----------
@@ -396,6 +420,12 @@ api.get("/admin/audit", authRequired, requireRole("admin"), (_req, res) => {
 });
 
 app.use("/api", api);
+
+// Global error handler — prevents leaking stack traces to clients.
+app.use((err: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
+  console.error("Unhandled error:", err);
+  res.status(500).json({ error: "internal_error" });
+});
 
 // ---------- Serve built client in production ----------
 const clientDist = path.join(__dirname, "..", "..", "client", "dist");
