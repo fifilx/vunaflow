@@ -36,7 +36,7 @@ export default function Notifications() {
                 <div className="flex-1">
                   <div className="font-semibold text-slate-800 dark:text-slate-100">{lang === "sw" ? n.title_sw : n.title_en}</div>
                   <div className="text-sm text-slate-500">{lang === "sw" ? n.body_sw : n.body_en}</div>
-                  <div className="mt-1 text-xs text-slate-400">{new Date(n.created_at + "Z").toLocaleString()}</div>
+                  <div className="mt-1 text-xs text-slate-400">{new Date(n.created_at).toLocaleString()}</div>
                 </div>
                 {!n.read && <span className="h-2.5 w-2.5 rounded-full bg-green-500" />}
               </div>
