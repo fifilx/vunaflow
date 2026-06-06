@@ -32,15 +32,15 @@ export function publicUser(row: any): AuthUser {
   };
 }
 
-export function authRequired(req: AuthRequest, res: Response, next: NextFunction) {
+export async function authRequired(req: AuthRequest, res: Response, next: NextFunction) {
   const header = req.headers.authorization;
   const token = header?.startsWith("Bearer ") ? header.slice(7) : null;
   if (!token) return res.status(401).json({ error: "auth_required" });
   try {
     const payload = jwt.verify(token, JWT_SECRET) as { uid: number };
-    const row = db.prepare("SELECT * FROM users WHERE id = ?").get(payload.uid);
-    if (!row) return res.status(401).json({ error: "invalid_token" });
-    req.user = publicUser(row);
+    const { rows } = await db.query("SELECT * FROM users WHERE id = $1", [payload.uid]);
+    if (!rows[0]) return res.status(401).json({ error: "invalid_token" });
+    req.user = publicUser(rows[0]);
     next();
   } catch {
     return res.status(401).json({ error: "invalid_token" });
