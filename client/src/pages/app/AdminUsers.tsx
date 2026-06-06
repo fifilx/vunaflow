@@ -66,7 +66,7 @@ export default function AdminUsers() {
           <div key={l.id} className="flex items-center justify-between p-3 text-sm">
             <span className="font-medium text-slate-700 dark:text-slate-200">{l.action}</span>
             <span className="text-slate-400">{l.detail}</span>
-            <span className="text-xs text-slate-400">{new Date(l.created_at + "Z").toLocaleString()}</span>
+            <span className="text-xs text-slate-400">{new Date(l.created_at).toLocaleString()}</span>
           </div>
         ))}
       </Card>

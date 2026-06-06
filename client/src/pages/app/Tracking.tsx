@@ -38,7 +38,7 @@ export default function Tracking() {
               </div>
               <div className="mt-6"><ProgressTracker status={a.status} /></div>
               <div className="mt-4 text-xs text-slate-400">
-                {t("tracking.lastUpdated")}: {new Date(a.updated_at + "Z").toLocaleString()}
+                {t("tracking.lastUpdated")}: {new Date(a.updated_at).toLocaleString()}
               </div>
             </Card>
           ))}
