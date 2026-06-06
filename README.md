@@ -4,7 +4,7 @@ An AI-powered agricultural loan assistance platform that helps farmers, agribusi
 owners and loan applicants understand, apply for, track and manage agricultural loans —
 with a strong focus on user experience, automation and **bilingual (English / Swahili)** support.
 
-> This repository contains a working **web MVP** (React + Node/Express + SQLite). Heavier
+> This repository contains a working **web MVP** (React + Node/Express + PostgreSQL). Heavier
 > production pieces (real NLP models, Tesseract OCR, live SMS/OTP, Google OAuth, Flutter
 > mobile app) are implemented as functional demos/stubs and can be wired to real providers.
 
@@ -35,10 +35,38 @@ with a strong focus on user experience, automation and **bilingual (English / Sw
 
 - **Frontend**: React + TypeScript + Vite, Tailwind CSS, react-i18next, Recharts, lucide-react
 - **Backend**: Node.js + Express + TypeScript (tsx), JWT auth, bcrypt password hashing
-- **Database**: SQLite via better-sqlite3 (schema mirrors the requested PostgreSQL design and
-  is straightforward to port to Postgres)
+- **Database**: PostgreSQL (via `pg` / node-postgres)
+
+## Prerequisites
+
+- **Node.js** 18+ and npm
+- **PostgreSQL** 14+ running on `localhost:5432`
 
 ## Getting started
+
+### 1. Create the database
+
+Open a terminal (or pgAdmin SQL editor) and run:
+
+```sql
+CREATE DATABASE vunaflow;
+```
+
+### 2. Configure the connection
+
+Copy the example env file and set your PostgreSQL password:
+
+```bash
+cp server/.env.example server/.env
+# edit server/.env and replace YOUR_PASSWORD with your actual postgres password
+```
+
+The default connection string is:
+```
+DATABASE_URL=postgresql://postgres:YOUR_PASSWORD@localhost:5432/vunaflow
+```
+
+### 3. Install & run
 
 ```bash
 # install dependencies for both apps
@@ -48,12 +76,20 @@ npm run install:all
 npm run dev
 ```
 
+Tables and seed data (staff/admin accounts, loan products) are created automatically
+on first startup.
+
 The Vite dev server proxies `/api` to the backend. For a single-process production-style run:
 
 ```bash
 npm run build   # builds the client into client/dist
 npm start       # Express serves the API + the built client on http://localhost:4000
 ```
+
+### 4. View data in pgAdmin
+
+Open **pgAdmin** (installed with PostgreSQL) → connect to `localhost:5432` → expand
+**vunaflow** → **Schemas** → **public** → **Tables** → right-click a table → **View/Edit Data**.
 
 ## Demo / seed accounts
 
@@ -69,7 +105,7 @@ Customers are created via signup. Phone OTP demo code is `123456`.
 ```
 vunaflow/
 ├── client/   # React + Vite frontend (i18n, pages, components)
-└── server/   # Express + SQLite API (auth, applications, documents, chat, analytics)
+└── server/   # Express + PostgreSQL API (auth, applications, documents, chat, analytics)
 ```
 
 ## Database tables
@@ -84,7 +120,6 @@ input validation, audit logging, and no user-enumeration on password reset.
 
 ## Roadmap (Phase 2+)
 
-- Replace SQLite with PostgreSQL and add migrations
 - Real NLP model + intent recognition service (Python/TensorFlow)
 - Tesseract OCR microservice for true document extraction
 - Live SMS/OTP (e.g. Africa's Talking / Twilio), email and push notifications
