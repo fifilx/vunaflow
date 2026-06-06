@@ -124,21 +124,6 @@ api.post("/auth/otp/verify", async (req, res) => {
   res.json({ token: signToken(row.id, true), user: publicUser(row) });
 });
 
-// Google login (demo): trusts a provided email/name and links/creates an account.
-api.post("/auth/google", async (req, res) => {
-  const { email, name = "Google User", googleId, language = "en" } = req.body || {};
-  if (!email) return res.status(400).json({ error: "missing_email" });
-  let { rows } = await db.query("SELECT * FROM users WHERE email = $1", [email]);
-  let row = rows[0];
-  if (!row) {
-    const ins = await db.query(
-      "INSERT INTO users (name, email, google_id, role, language) VALUES ($1, $2, $3, 'customer', $4) RETURNING *",
-      [name, email, googleId || `g_${Date.now()}`, language]
-    );
-    row = ins.rows[0];
-  }
-  res.json({ token: signToken(row.id, true), user: publicUser(row) });
-});
 
 // Password reset (demo): issues a reset token, then sets a new password.
 const resetStore = new Map<string, number>();
