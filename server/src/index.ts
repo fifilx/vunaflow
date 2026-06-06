@@ -94,35 +94,6 @@ api.post("/auth/login", async (req, res) => {
   res.json({ token: signToken(row.id, !!remember), user: publicUser(row) });
 });
 
-// Phone OTP (demo): any phone gets a fixed demo code; verify creates/looks up user.
-const otpStore = new Map<string, string>();
-api.post("/auth/otp/request", (req, res) => {
-  const { phone } = req.body || {};
-  if (!phone) return res.status(400).json({ error: "missing_phone" });
-  const code = "123456"; // demo code
-  otpStore.set(phone, code);
-  res.json({ ok: true, demoCode: code, message: "Demo OTP is 123456" });
-});
-
-api.post("/auth/otp/verify", async (req, res) => {
-  const { phone, code, name = "Vuna Farmer", language = "en" } = req.body || {};
-  if (!phone || !code) return res.status(400).json({ error: "missing_fields" });
-  if (otpStore.get(phone) !== code) return res.status(401).json({ error: "invalid_code" });
-  otpStore.delete(phone);
-  let { rows } = await db.query("SELECT * FROM users WHERE phone = $1", [phone]);
-  let row = rows[0];
-  if (!row) {
-    const ins = await db.query(
-      "INSERT INTO users (name, phone, role, language) VALUES ($1, $2, 'customer', $3) RETURNING *",
-      [name, phone, language]
-    );
-    row = ins.rows[0];
-    await notify(row.id, "welcome",
-      { title: "Welcome to VunaFlow", body: "Your account is ready." },
-      { title: "Karibu VunaFlow", body: "Akaunti yako iko tayari." });
-  }
-  res.json({ token: signToken(row.id, true), user: publicUser(row) });
-});
 
 
 // Password reset (demo): issues a reset token, then sets a new password.
